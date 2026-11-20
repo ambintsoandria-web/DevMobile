@@ -19,12 +19,19 @@ import '@ionic/vue/css/palettes/dark.system.css';
 
 /* Couleurs de l'application */
 import './theme/variables.css';
+import { restaurerPanier } from './composables/usePanier.ts'; 
+import { defineCustomElements } from '@ionic/pwa-elements/loader';
+defineCustomElements(window);
+Promise.all([router.isReady(), restaurerPanier()]).then(() => {
+  app.mount('#app');
+});
 
 const app = createApp(App)
   .use(IonicVue)   // active Ionic dans Vue
   .use(router);    // active la navigation
 
 // On attend que le routeur soit prêt avant d'afficher l'application
-router.isReady().then(() => {
-  app.mount('#app');
-});
+
+// router.isReady().then(() => {
+//   app.mount('#app');
+// });  

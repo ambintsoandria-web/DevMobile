@@ -10,6 +10,7 @@
       <ion-toolbar>
         <ion-segment v-model="categorieChoisie" scrollable @ion-change="charger">
           <ion-segment-button value="toutes"><ion-label>Tout</ion-label></ion-segment-button>
+          <ion-segment-button value="favoris"><ion-label>Favoris</ion-label></ion-segment-button>
           <ion-segment-button v-for="c in categories" :key="c.id" :value="String(c.id)">
             <ion-label>{{ c.nom }}</ion-label>
           </ion-segment-button>
@@ -44,6 +45,10 @@
               <ion-badge v-if="!plat.disponible" color="medium" class="epuise">Épuisé</ion-badge>
             </p>
           </ion-label>
+          <ion-button slot="end" fill="clear" color="danger" aria-label="Favori"
+            @click.stop.prevent="basculer(plat.id)">
+            <ion-icon slot="icon-only" :icon="estFavori(plat.id) ? heart : heartOutline" />
+          </ion-button>
           <ion-button slot="end" fill="clear" :disabled="!plat.disponible" aria-label="Ajouter au panier"
             @click.stop.prevent="ajouterAuPanier(plat)">
             <ion-icon slot="icon-only" :icon="addCircleOutline" />
@@ -65,12 +70,13 @@ import {
   IonSpinner, IonText, IonButton, IonBadge, IonIcon, IonSearchbar, IonSegment,
   IonSegmentButton, IonRefresher, IonRefresherContent, toastController,
 } from '@ionic/vue';
-import { addCircleOutline } from 'ionicons/icons';
+import { addCircleOutline, heart, heartOutline } from 'ionicons/icons';
 import api from '../services/api';
 import type { Categorie, Plat } from '../types/gargote';
 import type { RefresherCustomEvent } from '@ionic/vue';
 import { formatAriary } from '../utils/format';
 import { usePanier } from '../composables/usePanier';
+import { useFavoris } from '../composables/useFavoris';
 
 const plats = ref<Plat[]>([]);
 const categories = ref<Categorie[]>([]);
@@ -79,17 +85,22 @@ const erreur = ref<string | null>(null);
 const recherche = ref('');
 const categorieChoisie = ref('toutes');
 const { ajouter } = usePanier();
+const { estFavori, basculer } = useFavoris();
 
 const platsFiltres = computed(() => {
   const mot = recherche.value.trim().toLowerCase();
-  return plats.value.filter((p) => p.nom.toLowerCase().includes(mot));
+  return plats.value.filter(
+    (p) =>
+      p.nom.toLowerCase().includes(mot) &&
+      (categorieChoisie.value !== 'favoris' || estFavori(p.id))
+  );
 });
 
 async function charger() {
   chargement.value = true;
   erreur.value = null;
   try {
-    const id = categorieChoisie.value === 'toutes' ? null : categorieChoisie.value;
+    const id = categorieChoisie.value === 'toutes' || categorieChoisie.value === 'favoris' ? null : categorieChoisie.value;
     plats.value = await api.getPlats(id);
   } catch (e) {
     erreur.value = "Impossible de joindre l'API. Est-elle lancée ?";

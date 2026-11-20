@@ -14,6 +14,7 @@
       <ion-text v-if="erreur" color="danger">
         <p>{{ erreur }}</p>
       </ion-text>
+      <img v-if="photo" :src="photo" alt="Photo du plat" />
 
       <ion-card v-if="plat">
         <ion-card-header>
@@ -25,6 +26,12 @@
           <p v-if="riz">Avec du riz : {{ formatAriary(Number(plat.prix) + Number(riz.prix)) }}</p>
           <h2 class="prix">{{ formatAriary(plat.prix) }}</h2>
           <ion-badge v-if="!plat.disponible" color="medium">Épuisé</ion-badge>
+          <!-- Bouton photo -->
+        <ion-button v-if="plat" expand="block" :disabled="!plat.disponible" @click="prendrePhoto">
+          <ion-icon slot="start" :icon="phonePortrait" />
+           Photographier mon plat
+          </ion-button>
+          <!-- Bouton photo -->
         </ion-card-content>
       </ion-card>
 
@@ -42,13 +49,27 @@ import { useRoute } from 'vue-router';
 import {
   IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonBackButton,
   IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent, IonBadge,
-  IonButton, IonIcon, IonSpinner, IonText, useIonRouter,
+  IonButton, IonIcon, IonSpinner, IonText, useIonRouter, 
 } from '@ionic/vue';
-import { cartOutline } from 'ionicons/icons';
+import { cartOutline,phonePortrait } from 'ionicons/icons';
 import api, { ErreurApi } from '../services/api';
 import type { Plat } from '../types/gargote';
 import { formatAriary } from '../utils/format';
 import { usePanier } from '../composables/usePanier';
+// Camera
+import { Camera } from '@capacitor/camera';
+
+const photo = ref<string | undefined>(undefined);
+
+async function prendrePhoto() {
+  try {
+    const resultat = await Camera.takePhoto({ quality: 60, targetWidth: 800 });
+    photo.value = resultat.webPath;
+  } catch {
+    // l'utilisateur a annulé
+  }
+}
+// 
 
 const route = useRoute();
 const ionRouter = useIonRouter();

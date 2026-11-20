@@ -1,9 +1,41 @@
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import type { LignePanier, Plat } from '../types/gargote';
+import { lire } from '@/services/stockage';
+import { ecrire } from '@/services/stockage';
 
 // L'état est déclaré EN DEHORS de la fonction :
 // toutes les pages qui appellent usePanier() partagent le même panier.
 const lignes = ref<LignePanier[]>([]); // [{ plat, quantite }]
+
+function estPanier(x: unknown): x is LignePanier[] {
+  return (
+    Array.isArray(x) &&
+    x.every(
+      (item) =>
+        typeof item === 'object' &&
+        item !== null &&
+        'quantite' in item &&
+        typeof item.quantite === 'number' &&
+        'plat' in item &&
+        typeof item.plat === 'object' &&
+        item.plat !== null &&
+        'id' in item.plat &&
+        typeof item.plat.id === 'number' &&
+        'prix' in item.plat &&
+        typeof item.plat.prix === 'string'
+    )
+  );
+}
+export async function restaurerPanier(): Promise<void> {
+  lignes.value = await lire('panier', [], estPanier);
+  watch(
+    lignes,
+    (nouvellesLignes) => {
+      ecrire('panier', nouvellesLignes);
+    },
+    { deep: true }
+  );
+}
 
 export function usePanier() {
   function ajouter(plat: Plat) {

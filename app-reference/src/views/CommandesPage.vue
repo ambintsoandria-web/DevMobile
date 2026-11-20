@@ -5,7 +5,6 @@
         <ion-title>Commandes</ion-title>
       </ion-toolbar>
     </ion-header>
-
     <ion-content>
       <ion-refresher slot="fixed" @ion-refresh="rafraichir">
         <ion-refresher-content />
