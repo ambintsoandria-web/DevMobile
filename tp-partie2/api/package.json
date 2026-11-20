@@ -1,0 +1,12 @@
+{
+  "name": "gargote-api",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Mini-API Gargote pour le TP Ionic (aucune dépendance)",
+  "scripts": {
+    "dev": "vite",
+    "typecheck": "vue-tsc --noEmit",
+    "build": "vue-tsc --noEmit && vite build",
+    "preview": "vite preview"
+  }
+}
